@@ -1,29 +1,57 @@
-steps:
-  - name: Checkout source
-    uses: actions/checkout@v4
 
-  - name: Set up Java 21
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '21'
-      cache: gradle
+name: Build HvH Minecraft Mod
 
-  - name: Check project files
-    run: |
-      echo "Checking project files..."
-      ls -la
-      test -f build.gradle || test -f build.gradle.kts
+on:
+  push:
+    branches:
+      - main
+      - mainn
+  workflow_dispatch:
 
-  - name: Build mod
-    run: |
-      gradle --version
-      gradle build --no-daemon --stacktrace
+permissions:
+  contents: read
 
-  - name: Upload JAR
-    if: success()
-    uses: actions/upload-artifact@v4
-    with:
-      name: HvH-Mod-JAR
-      path: build/libs/*.jar
-      if-no-files-found: error
+jobs:
+  build:
+    name: Build Minecraft Mod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Check project files
+        shell: bash
+        run: |
+          echo "Checking project files..."
+          ls -la
+
+          if [ ! -f gradlew ] && [ ! -f build.gradle ] && [ ! -f build.gradle.kts ]; then
+            echo "ERROR: No Gradle build files found."
+            exit 1
+          fi
+
+      - name: Build mod
+        shell: bash
+        run: |
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew build --no-daemon --stacktrace
+          else
+            echo "ERROR: gradlew is missing. Add the Gradle Wrapper to the repository."
+            exit 1
+          fi
+
+      - name: Upload JAR
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HvH-Mod-JAR
+          path: build/libs/*.jar
+          if-no-files-found: error
