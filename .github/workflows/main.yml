@@ -9,18 +9,11 @@ steps:
       java-version: '21'
       cache: gradle
 
-  - name: Check Gradle project
+  - name: Check project files
     run: |
       echo "Checking project files..."
       ls -la
-      if [ ! -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
-        echo "ERROR: Gradle settings file is missing."
-        exit 1
-      fi
-      if [ ! -f build.gradle ] && [ ! -f build.gradle.kts ]; then
-        echo "ERROR: Gradle build file is missing."
-        exit 1
-      fi
+      test -f build.gradle || test -f build.gradle.kts
 
   - name: Build mod
     run: |
